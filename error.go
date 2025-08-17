@@ -69,6 +69,7 @@ func NewError(err error, keyVals ...any) error {
 	var e *Error
 	addStack := true
 	if errors.As(err, &e) {
+		fmt.Println("Has parent error!")
 		addStack = false
 		e.mu.Lock()
 		for k, v := range e.attrs {
@@ -78,14 +79,18 @@ func NewError(err error, keyVals ...any) error {
 		e.mu.Unlock()
 	}
 
-	for i, l := 0, len(attrs); i < l; i++ {
+	for i, l := 0, len(keyVals); i < l; i++ {
 		k, ok := keyVals[i].(string)
-		if !ok {
+		fmt.Printf("Args(%v) ok: %v, key: %v\n", i, ok, k)
+		if !ok || i+1 >= l {
+			fmt.Println("contin")
 			continue
 		}
 		i++
 		attrs[k] = keyVals[i]
 	}
+
+	fmt.Printf("attrs %+v\n", attrs)
 
 	res := &Error{
 		err:   err,
@@ -103,7 +108,7 @@ func GetArgs(err error, attrs ...any) []any {
 	var e *Error
 
 	if errors.As(err, &e) {
-		return append(e.mapToSlice(), attrs)
+		return append(e.mapToSlice(), attrs...)
 	}
 
 	return attrs
