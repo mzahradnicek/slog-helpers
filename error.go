@@ -81,7 +81,7 @@ func NewError(err error, keyVals ...any) error {
 
 	for i, l := 0, len(keyVals); i < l; i++ {
 		k, ok := keyVals[i].(string)
-		fmt.Printf("Args(%v) ok: %v, key: %v\n", i, ok, k)
+
 		if !ok || i+1 >= l {
 			fmt.Println("contin")
 			continue
@@ -89,8 +89,6 @@ func NewError(err error, keyVals ...any) error {
 		i++
 		attrs[k] = keyVals[i]
 	}
-
-	fmt.Printf("attrs %+v\n", attrs)
 
 	res := &Error{
 		err:   err,
