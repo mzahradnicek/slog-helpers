@@ -69,7 +69,6 @@ func NewError(err error, keyVals ...any) error {
 	var e *Error
 	addStack := true
 	if errors.As(err, &e) {
-		fmt.Println("Has parent error!")
 		addStack = false
 		e.mu.Lock()
 		for k, v := range e.attrs {
@@ -83,7 +82,6 @@ func NewError(err error, keyVals ...any) error {
 		k, ok := keyVals[i].(string)
 
 		if !ok || i+1 >= l {
-			fmt.Println("contin")
 			continue
 		}
 		i++
