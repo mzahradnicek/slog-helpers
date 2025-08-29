@@ -11,8 +11,8 @@ import (
 type Error struct {
 	err error
 
-	mu    sync.RWMutex
-	attrs map[string]any
+	mu   sync.RWMutex
+	args map[string]any
 }
 
 func (o *Error) Error() string {
@@ -20,7 +20,7 @@ func (o *Error) Error() string {
 		return o.err.Error()
 	}
 
-	return fmt.Sprintf("%v", o.attrs)
+	return fmt.Sprintf("%v", o.args)
 }
 
 func (o *Error) Unwrap() error {
@@ -47,7 +47,7 @@ func (o *Error) addStackTrace() {
 		}
 	}
 
-	o.attrs["stack"] = stackTrace
+	o.args["stack"] = stackTrace
 }
 
 func (o *Error) mapToSlice() []any {
@@ -56,7 +56,7 @@ func (o *Error) mapToSlice() []any {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 
-	for k, v := range o.attrs {
+	for k, v := range o.args {
 		res = append(res, k, v)
 	}
 
@@ -64,15 +64,15 @@ func (o *Error) mapToSlice() []any {
 }
 
 func NewError(err error, keyVals ...any) error {
-	attrs := make(map[string]any)
+	args := make(map[string]any)
 
 	var e *Error
 	addStack := true
 	if errors.As(err, &e) {
 		addStack = false
 		e.mu.Lock()
-		for k, v := range e.attrs {
-			attrs[k] = v
+		for k, v := range e.args {
+			args[k] = v
 		}
 
 		e.mu.Unlock()
@@ -85,12 +85,12 @@ func NewError(err error, keyVals ...any) error {
 			continue
 		}
 		i++
-		attrs[k] = keyVals[i]
+		args[k] = keyVals[i]
 	}
 
 	res := &Error{
-		err:   err,
-		attrs: attrs,
+		err:  err,
+		args: args,
 	}
 
 	if addStack {
@@ -100,12 +100,11 @@ func NewError(err error, keyVals ...any) error {
 	return res
 }
 
-func GetArgs(err error, attrs ...any) []any {
-	var e *Error
+func (o *Error) GetArgs(args ...any) []any {
+	return append(o.mapToSlice(), args...)
+}
 
-	if errors.As(err, &e) {
-		return append(e.mapToSlice(), attrs...)
-	}
-
-	return attrs
+func (o *Error) HasArg(name string) bool {
+	_, ok := o.args[name]
+	return ok
 }
