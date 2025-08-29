@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
-	"sync"
 )
 
 type Error struct {
 	err error
 
-	mu   sync.RWMutex
 	args map[string]any
 }
 
-func (o *Error) Error() string {
+func (o Error) Error() string {
 	if o.err != nil {
 		return o.err.Error()
 	}
@@ -53,9 +51,6 @@ func (o *Error) addStackTrace() {
 func (o *Error) mapToSlice() []any {
 	var res []any
 
-	o.mu.RLock()
-	defer o.mu.RUnlock()
-
 	for k, v := range o.args {
 		res = append(res, k, v)
 	}
@@ -70,12 +65,9 @@ func NewError(err error, keyVals ...any) error {
 	addStack := true
 	if errors.As(err, &e) {
 		addStack = false
-		e.mu.Lock()
 		for k, v := range e.args {
 			args[k] = v
 		}
-
-		e.mu.Unlock()
 	}
 
 	for i, l := 0, len(keyVals); i < l; i++ {
