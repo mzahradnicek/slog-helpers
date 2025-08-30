@@ -100,3 +100,11 @@ func (o *Error) HasArg(name string) bool {
 	_, ok := o.args[name]
 	return ok
 }
+
+func (o *Error) GetArg(name string) any {
+	if v, ok := o.args[name]; ok {
+		return v
+	}
+
+	return nil
+}
